@@ -1,11 +1,10 @@
-import { G_EventInfo } from "../interface";
-import { King } from "../king";
-import { Soldier } from "../soldier";
-import { Status } from "../soldier/status";
-
+import type { G_EventInfo } from '../interface'
+import { King } from '../king'
+import type { Soldier } from '../soldier'
+import { Status } from '../soldier/status'
 
 interface GeneralOptions {
-  rollingCountBuckets: number,
+  rollingCountBuckets: number
   rollingCountTimeout: number
 }
 
@@ -18,12 +17,12 @@ export class General<S extends Record<string, Soldier<any>>> extends Status<Gene
   constructor(public name: string, public soldiers: S, options?: Partial<GeneralOptions>) {
     super({
       rollingCountBuckets: 10,
-      rollingCountTimeout: 1000, ...options
+      rollingCountTimeout: 1000,
+      ...options,
     });
 
-    ['success', 'reject',].forEach((e) => {
-      this.on(e as GeneralEvent, this.increment.bind(this));
-
+    ['success', 'reject'].forEach((e) => {
+      this.on(e as GeneralEvent, this.increment.bind(this))
     })
     Object.values(soldiers).forEach((soldier) => {
       soldier.hasLeader = true
@@ -32,7 +31,6 @@ export class General<S extends Record<string, Soldier<any>>> extends Status<Gene
       soldier.on('connect', () => this.onConnect())
     })
     King.register(name, this)
-
   }
 
   on(eventName: GeneralEvent, handler: (params: G_EventInfo) => any) {
@@ -52,8 +50,8 @@ export class General<S extends Record<string, Soldier<any>>> extends Status<Gene
   onDisconnect() {
     this.isActive = false
   }
+
   onConnect() {
     this.isActive = false
   }
-
 }

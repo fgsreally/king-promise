@@ -1,11 +1,11 @@
 export interface GeneralConfig {
-  route: String;
-  description: String;
-  services: Service[][];
-  long: Service[];
+  route: string
+  description: string
+  services: Service[][]
+  long: Service[]
 }
 export interface Service {
-  name: String;
-  map?: Function;
-  schema?: JSON;
+  name: string
+  map?: Function
+  schema?: JSON
 }
