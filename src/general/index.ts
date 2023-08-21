@@ -14,22 +14,26 @@ export class General<S extends Record<string, Soldier<any>>> extends Status<Gene
   type = 'general'
   isActive = true
   errorInfo: string
-  constructor(public name: string, public soldiers: S, options?: Partial<GeneralOptions>) {
+  soldiers: S = {} as any
+  constructor(public name: string, soldiers: Soldier<any>[], options?: Partial<GeneralOptions>) {
     super({
       rollingCountBuckets: 10,
       rollingCountTimeout: 1000,
       ...options,
+    })
+
+    soldiers.forEach((soldier) => {
+      (this.soldiers as any)[soldier.name] = soldier
+      soldier.hasLeader = true
+      soldier.on('retry', () => this.onDisconnect())
+      soldier.on('disconnect', () => this.onDisconnect())
+      soldier.on('connect', () => this.onConnect())
     });
 
     ['success', 'reject'].forEach((e) => {
       this.on(e as GeneralEvent, this.increment.bind(this))
     })
-    Object.values(soldiers).forEach((soldier) => {
-      soldier.hasLeader = true
-      soldier.on('retry', () => this.onDisconnect())
-      soldier.on('disconnect', () => this.onDisconnect())
-      soldier.on('connect', () => this.onConnect())
-    })
+
     King.register(name, this)
   }
 
@@ -39,10 +43,10 @@ export class General<S extends Record<string, Soldier<any>>> extends Status<Gene
 
   async run<F extends (s: S) => any>(cb: F) {
     if (!this.isActive) {
-      this.emit('reject', { time: Date.now() })
+      this.emit('reject', { time: Date.now(), type: 'reject' })
       return Promise.reject(this.errorInfo)
     }
-    this.emit('success', { time: Date.now() })
+    this.emit('success', { time: Date.now(), type: 'success' })
 
     return cb(this.soldiers)
   }

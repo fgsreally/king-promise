@@ -1,7 +1,8 @@
+/* eslint-disable prefer-promise-reject-errors */
 import type { BuckInfo, S_EventInfo, TaskOptions } from '../interface'
 import { STATE } from '../enum'
 import { King } from '../king'
-import { taskPool } from './pool'
+import { TaskPool } from './pool'
 import { Status } from './status'
 
 type SoldierEvent = 'success' | 'failure' | 'semaphoreLocked' | 'run' | 'disconnect' | 'retry' | 'timeout' | 'connect' | 'shutdown'
@@ -13,7 +14,7 @@ export class Soldier<Task extends (...args: any) => Promise<any>> extends Status
   _warmUpTimer: NodeJS.Timer
   hasLeader = false
   warmUp = false
-  taskPool: taskPool
+  taskPool: TaskPool
   constructor(
     public name: string,
     public task: Task,
@@ -25,8 +26,8 @@ export class Soldier<Task extends (...args: any) => Promise<any>> extends Status
       errorThresholdPercentage: 50, // 错误率限制
       rollingCountTimeout: 10000, //
       rollingCountBuckets: 1, //
-      rollingPercentilesEnabled: false, // 是否允许窗口百分比检测
-      capacity: Number.MAX_SAFE_INTEGER, // 池内令牌
+      // rollingPercentilesEnabled: false, // 是否允许窗口百分比检测
+      capacity: Number.MAX_SAFE_INTEGER,
       volumeThreshold: 0, // 最小保护数目，当任务执行数小于这个，无论如何不会断开
       allowWarmUp: true, // 在初始启动，以及重连时，是否允许预热，即此时段失败无论如何不会断开
       errorFilter: () => false, // 错误处理，如果返回true就不会进入断开的逻辑
@@ -44,7 +45,7 @@ export class Soldier<Task extends (...args: any) => Promise<any>> extends Status
       this.metadata = metadata
 
     // 初始化令牌库和状态
-    this.taskPool = new taskPool(options.capacity || Number.MAX_SAFE_INTEGER)
+    this.taskPool = new TaskPool(options.capacity || Number.MAX_SAFE_INTEGER)
 
     if (this.options.allowWarmUp) {
       this.warmUp = true
@@ -134,6 +135,7 @@ export class Soldier<Task extends (...args: any) => Promise<any>> extends Status
   run(...args: Parameters<Task>): ReturnType<Task> | Promise<Error> {
     if (!this.hasLeader && this.state !== STATE.RUN) {
       this.emit('reject', args)
+
       return Promise.reject({ error: 'reject', state: this.state })
     }
     this.emit('run', args)
@@ -214,8 +216,10 @@ export class Soldier<Task extends (...args: any) => Promise<any>> extends Status
 
     // 检查状态是否达到断开的条件
     const stats = this.stats
+
     if (stats.run < this.options.volumeThreshold)
       return
+
     const errorRate = (stats.failure / stats.run) * 100
     if (
       errorRate > this.options.errorThresholdPercentage

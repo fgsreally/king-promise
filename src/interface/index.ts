@@ -1,19 +1,34 @@
 interface TaskOptions {
+  // 超时
   timeout?: number
+  // 最多容忍错误
+
   maxFailures?: number
   resetTimeout?: number
+  // 时间窗口时长
+
   rollingCountTimeout?: number
+  // 时间窗口数
   rollingCountBuckets?: number
-  rollingPercentilesEnabled?: boolean
+  // 池内令牌,同时最多运行数
   capacity?: number
+  // 错误率限制
   errorThresholdPercentage?: number
   // enabled?: boolean;
+  // 允许热启动保护
+
   allowWarmUp?: boolean
-  // warmupTime?: number;
+  // 初始保护数目
   volumeThreshold?: number
-  errorFilter?: Function
+  // 错误过滤
+  errorFilter?: (event: S_EventInfo) => boolean
+  // 允许重试
   retry?: boolean
+  // 重试次数
+
   retryTimes?: number
+  // 热启动保护时长
+
   warmTimeout?: number
   abandon?: boolean
 }
@@ -27,7 +42,7 @@ interface Bucks {
   fires: number
   timeout: number
   semaphoreLocked: number
-  percentiles: Object
+  percentiles: any
   latencyTimes: number[]
   latencyMean?: number
 }

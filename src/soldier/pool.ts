@@ -1,7 +1,7 @@
-export class taskPool {
+export class TaskPool {
   count: number = 0
   abandon: boolean
-  resolvers: Function[] = []
+  resolvers: (() => void)[] = []
   _retrytimer: any
   constructor(public limit: number) {
   }
@@ -44,8 +44,8 @@ export class taskPool {
         if (timeout) {
           setTimeout(() => {
             this.resolvers.shift()
-            const err = new Error()
-            err.message = `Timed out after ${timeout}ms`
+            const err = new Error(`Timed out after ${timeout}ms`)
+            // err.message = `Timed out after ${timeout}ms`
             err.name = 'ETIMEDOUT'
             reject(err)
           }, timeout)

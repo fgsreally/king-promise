@@ -14,6 +14,7 @@ export class Status<StatusOptions extends { rollingCountBuckets: number; rolling
     this.BUCKETS = options.rollingCountBuckets
     this.TIMEOUT = options.rollingCountTimeout
     // 初始化窗口
+    // eslint-disable-next-line unicorn/no-new-array
     this.WINDOW = new Array(this.BUCKETS).fill({})
     this.WINDOW = this.WINDOW.map(() => {
       return {
